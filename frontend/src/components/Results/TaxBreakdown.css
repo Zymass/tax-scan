@@ -1,0 +1,74 @@
+.tax-breakdown {
+  margin-bottom: 40px;
+}
+
+.year-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.year-header h3 {
+  font-size: 24px;
+}
+
+.delta {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.delta.increase {
+  color: #dc2626;
+}
+
+.delta.decrease {
+  color: #10b981;
+}
+
+.breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.breakdown-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.breakdown-table tr.total {
+  background-color: #f8fafc;
+  font-weight: bold;
+}
+
+.percent {
+  text-align: right;
+  color: #64748b;
+}
+
+.progress-bars {
+  margin-top: 20px;
+}
+
+.bar-item {
+  margin-bottom: 12px;
+}
+
+.bar-item .label {
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.bar {
+  height: 8px;
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar .fill {
+  height: 100%;
+  background-color: #0284C7;
+  transition: width 0.3s ease;
+}

@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: tax_user
+      POSTGRES_PASSWORD: tax_password
+      POSTGRES_DB: tax_calculator
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://tax_user:tax_password@postgres:5432/tax_calculator"
+      JWT_SECRET: "dev-secret-key"
+      NODE_ENV: "development"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend/src:/app/src
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: "http://localhost:3000/api"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
