@@ -48,6 +48,10 @@ class ApiClient {
     return this.client.post('/auth/logout');
   }
 
+  passwordReset(email: string) {
+    return this.client.post('/auth/password-reset', { email });
+  }
+
   // Get current user info (if needed)
   getMe() {
     return this.client.get('/auth/me');
@@ -100,6 +104,10 @@ class ApiClient {
 
   updateAction(id: string, actionId: string, completed: boolean) {
     return this.client.put(`/calculations/${id}/actions/${actionId}`, { completed });
+  }
+
+  deleteCalculation(id: string) {
+    return this.client.delete(`/calculations/${id}`);
   }
 }
 

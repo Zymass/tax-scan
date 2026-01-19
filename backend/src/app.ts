@@ -3,16 +3,21 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
+// Load environment variables FIRST
+dotenv.config();
+
 // Routes
 import authRoutes from './api/auth.routes';
 import calculationsRoutes from './api/calculations.routes';
 import actionsRoutes from './api/actions.routes';
+import paymentRoutes from './api/payment.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
-import { optionalAuthMiddleware } from './middleware/auth.middleware';
+import { authMiddleware } from './middleware/auth.middleware';
 
-dotenv.config();
+// Passport config (initializes Google OAuth strategy) - imported AFTER dotenv.config()
+import './config/passport.config';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
@@ -48,8 +53,9 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/calculations', optionalAuthMiddleware, calculationsRoutes);
-app.use('/api', optionalAuthMiddleware, actionsRoutes);
+app.use('/api/calculations', authMiddleware, calculationsRoutes);
+app.use('/api', authMiddleware, actionsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling
 app.use(errorHandler);
@@ -59,9 +65,21 @@ app.use((req: Request, res: Response) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Logs will appear here. Watch for [PDF] and [PDF Generator] messages.`);
+});
+
+server.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please stop the process using this port or use a different port.`);
+    console.error(`💡 To find the process: lsof -ti:${PORT}`);
+    console.error(`💡 To kill it: kill -9 $(lsof -ti:${PORT})`);
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', error);
+    process.exit(1);
+  }
 });
 
 export default app;

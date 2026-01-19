@@ -153,9 +153,11 @@ export function generateCalculationHtml(data: any): string {
     return Number(value).toLocaleString('ru-RU');
   };
 
-  // Ensure tax_2025 and tax_2026 exist
+  // Ensure tax data exists for all years
   const tax2025 = data.tax_2025 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 };
   const tax2026 = data.tax_2026 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 };
+  const tax2027 = data.tax_2027 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 };
+  const tax2028 = data.tax_2028 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 };
   const revenue = Number(data.revenue_2025 || 0);
   const recommendation = data.recommendation || 'Нет рекомендаций';
 
@@ -205,11 +207,35 @@ export function generateCalculationHtml(data: any): string {
           <tr>
             <td>2026 (прогноз)</td>
             <td>${formatNumber(tax2026.main_tax)} ₽</td>
-            <td>${formatNumber(tax2026.nds_tax)} ₽</td>
+            <td>${formatNumber(tax2026.nds_tax)} ₽ ${tax2026.nds_tax > 0 ? '(порог: 20M)' : ''}</td>
             <td>${formatNumber(tax2026.contributions)} ₽</td>
             <td class="total">${formatNumber(tax2026.total)} ₽</td>
           </tr>
+          <tr>
+            <td>2027 (прогноз)</td>
+            <td>${formatNumber(tax2027.main_tax)} ₽</td>
+            <td>${formatNumber(tax2027.nds_tax)} ₽ ${tax2027.nds_tax > 0 ? '(порог: 15M)' : ''}</td>
+            <td>${formatNumber(tax2027.contributions)} ₽</td>
+            <td class="total">${formatNumber(tax2027.total)} ₽</td>
+          </tr>
+          <tr>
+            <td>2028 (прогноз)</td>
+            <td>${formatNumber(tax2028.main_tax)} ₽</td>
+            <td>${formatNumber(tax2028.nds_tax)} ₽ ${tax2028.nds_tax > 0 ? '(порог: 10M)' : ''}</td>
+            <td>${formatNumber(tax2028.contributions)} ₽</td>
+            <td class="total">${formatNumber(tax2028.total)} ₽</td>
+          </tr>
         </table>
+      </div>
+
+      <div class="section">
+        <h2>Изменения порогов НДС</h2>
+        <ul>
+          <li><strong>2026 год:</strong> Порог освобождения от НДС - 20 млн руб.</li>
+          <li><strong>2027 год:</strong> Порог освобождения от НДС снижается до 15 млн руб.</li>
+          <li><strong>2028 год:</strong> Порог освобождения от НДС снижается до 10 млн руб.</li>
+        </ul>
+        <p><em>При превышении порога применяются специальные ставки НДС: 5% (до 272M), 7% (272-450M), 22% (свыше 450M)</em></p>
       </div>
 
       <div class="section">

@@ -11,4 +11,6 @@ module.exports = {
     '!src/**/*.d.ts',
     '!src/app.ts',
   ],
+  watchman: false,
+  setupFilesAfterEnv: [],
 };

@@ -5,6 +5,16 @@ export class CalculationsService {
   private taxCalcService = new TaxCalculatorService();
 
   async createCalculation(userId: string) {
+    // Проверяем пользователя (без ограничения лимита, но ведем счет)
+    const user = await prisma.user.findUnique({
+      where: { id: userId }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Создаем расчет без проверки лимита (ограничение временно отключено)
     return await prisma.calculation.create({
       data: {
         user_id: userId,

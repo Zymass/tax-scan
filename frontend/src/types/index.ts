@@ -3,6 +3,9 @@ export interface User {
   email: string;
   name: string;
   phone?: string;
+  calculations_limit?: number;
+  calculations_count?: number;
+  available_calculations?: number;
 }
 
 export interface AuthResponse {

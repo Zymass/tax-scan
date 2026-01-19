@@ -100,6 +100,9 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
           <div className="label">2025 год (факт)</div>
           <div className="value">{formatCurrency(data.tax_2025.total)}</div>
           <div className="subtext">{data.revenue_2025 > 0 ? ((data.tax_2025.total / data.revenue_2025) * 100).toFixed(1) : '0'}% от выручки</div>
+          {data.tax_2025.nds_tax > 0 && (
+            <div className="nds-info">НДС: {formatCurrency(data.tax_2025.nds_tax)}</div>
+          )}
         </div>
         <div className="card highlight">
           <div className="label">2026 год (прогноз)</div>
@@ -109,6 +112,37 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
             <div className="change">
               +{formatCurrency(data.tax_2026.total - data.tax_2025.total)} ({(((data.tax_2026.total - data.tax_2025.total) / data.tax_2025.total) * 100).toFixed(0)}%)
             </div>
+          )}
+          {data.tax_2026.nds_tax > 0 && (
+            <div className="nds-info">НДС: {formatCurrency(data.tax_2026.nds_tax)} (порог: 20M)</div>
+          )}
+        </div>
+        <div className="card">
+          <div className="label">2027 год (прогноз)</div>
+          <div className="value">{formatCurrency(data.tax_2027.total)}</div>
+          <div className="subtext">{data.revenue_2025 > 0 ? ((data.tax_2027.total / data.revenue_2025) * 100).toFixed(1) : '0'}% от выручки</div>
+          {data.tax_2026.total > 0 && (
+            <div className="change">
+              {data.tax_2027.total - data.tax_2026.total >= 0 ? '+' : ''}
+              {formatCurrency(data.tax_2027.total - data.tax_2026.total)} ({(((data.tax_2027.total - data.tax_2026.total) / data.tax_2026.total) * 100).toFixed(0)}%)
+            </div>
+          )}
+          {data.tax_2027.nds_tax > 0 && (
+            <div className="nds-info">НДС: {formatCurrency(data.tax_2027.nds_tax)} (порог: 15M)</div>
+          )}
+        </div>
+        <div className="card">
+          <div className="label">2028 год (прогноз)</div>
+          <div className="value">{formatCurrency(data.tax_2028.total)}</div>
+          <div className="subtext">{data.revenue_2025 > 0 ? ((data.tax_2028.total / data.revenue_2025) * 100).toFixed(1) : '0'}% от выручки</div>
+          {data.tax_2027.total > 0 && (
+            <div className="change">
+              {data.tax_2028.total - data.tax_2027.total >= 0 ? '+' : ''}
+              {formatCurrency(data.tax_2028.total - data.tax_2027.total)} ({(((data.tax_2028.total - data.tax_2027.total) / data.tax_2027.total) * 100).toFixed(0)}%)
+            </div>
+          )}
+          {data.tax_2028.nds_tax > 0 && (
+            <div className="nds-info">НДС: {formatCurrency(data.tax_2028.nds_tax)} (порог: 10M)</div>
           )}
         </div>
         <div className="card">
@@ -154,6 +188,18 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
               data={data.tax_2026}
               total={data.tax_2026.total}
               prevYear={data.tax_2025}
+            />
+            <TaxBreakdown
+              year={2027}
+              data={data.tax_2027}
+              total={data.tax_2027.total}
+              prevYear={data.tax_2026}
+            />
+            <TaxBreakdown
+              year={2028}
+              data={data.tax_2028}
+              total={data.tax_2028.total}
+              prevYear={data.tax_2027}
             />
           </div>
         )}

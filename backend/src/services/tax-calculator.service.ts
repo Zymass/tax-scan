@@ -106,6 +106,38 @@ export class TaxCalculatorService {
         status_type
       );
 
+      // 2027 calculations (порог НДС снижается до 15M)
+      const contributionRate2027 = count_employees > 0 && revenue_2025 > TAX_CONSTANTS.CONTRIBUTION_THRESHOLD ? 30 : 15;
+      const ndsRate2027 = this.getNdsRateForYear(revenue_2025, 2027);
+
+      const tax2027 = calculateTotalTaxForRegime(
+        tax_regime,
+        revenue_2025,
+        expenses_2025,
+        count_employees,
+        fot_year,
+        applies_nds ? ndsRate2027 : 0,
+        incoming_nds,
+        contributionRate2027,
+        status_type
+      );
+
+      // 2028 calculations (порог НДС снижается до 10M)
+      const contributionRate2028 = count_employees > 0 && revenue_2025 > TAX_CONSTANTS.CONTRIBUTION_THRESHOLD ? 30 : 15;
+      const ndsRate2028 = this.getNdsRateForYear(revenue_2025, 2028);
+
+      const tax2028 = calculateTotalTaxForRegime(
+        tax_regime,
+        revenue_2025,
+        expenses_2025,
+        count_employees,
+        fot_year,
+        applies_nds ? ndsRate2028 : 0,
+        incoming_nds,
+        contributionRate2028,
+        status_type
+      );
+
       // Calculate alternative regimes
       const regimeComparison = this.compareAllRegimes(
         revenue_2025,
@@ -128,8 +160,8 @@ export class TaxCalculatorService {
         revenue_2025,
         tax_2025: tax2025,
         tax_2026: tax2026,
-        tax_2027: tax2026, // Approximation (simplified for MVP)
-        tax_2028: tax2026, // Approximation (simplified for MVP)
+        tax_2027: tax2027,
+        tax_2028: tax2028,
         regime_comparison: regimeComparison,
         recommended_regime: recommendedRegime,
         recommended_savings: Math.max(0, recommendedSavings)
@@ -160,21 +192,40 @@ export class TaxCalculatorService {
   }
 
   private getNdsRateForYear(revenue: number, year: number): number {
-    // In 2026 and beyond, NDS rates change based on threshold reductions
-    const thresholds2026 = {
-      threshold1: 20000000,
-      threshold2: 272000000,
-      threshold3: 450000000
+    // Пороги НДС снижаются каждый год:
+    // 2026: порог 20 млн руб. (освобождение), затем 5% до 272M, 7% до 450M, 22% выше
+    // 2027: порог 15 млн руб. (освобождение), затем 5% до 272M, 7% до 450M, 22% выше
+    // 2028: порог 10 млн руб. (освобождение), затем 5% до 272M, 7% до 450M, 22% выше
+    
+    const thresholds = {
+      2026: {
+        threshold1: 20000000,  // Порог освобождения от НДС
+        threshold2: 272000000, // Порог для ставки 5%
+        threshold3: 450000000   // Порог для ставки 7%
+      },
+      2027: {
+        threshold1: 15000000,  // Порог освобождения от НДС снижается до 15M
+        threshold2: 272000000, // Порог для ставки 5% остается
+        threshold3: 450000000   // Порог для ставки 7% остается
+      },
+      2028: {
+        threshold1: 10000000,  // Порог освобождения от НДС снижается до 10M
+        threshold2: 272000000, // Порог для ставки 5% остается
+        threshold3: 450000000   // Порог для ставки 7% остается
+      }
     };
 
-    if (revenue <= thresholds2026.threshold1) {
-      return 0;
-    } else if (revenue <= thresholds2026.threshold2) {
-      return 5;
-    } else if (revenue < thresholds2026.threshold3) {
-      return 7;
+    // Используем пороги для соответствующего года, по умолчанию 2026
+    const yearThresholds = thresholds[year as keyof typeof thresholds] || thresholds[2026];
+
+    if (revenue <= yearThresholds.threshold1) {
+      return 0; // Освобожден от НДС
+    } else if (revenue <= yearThresholds.threshold2) {
+      return 5; // Ставка 5% для УСН
+    } else if (revenue < yearThresholds.threshold3) {
+      return 7; // Ставка 7% для УСН
     } else {
-      return 22;
+      return 22; // Стандартная ставка 22%
     }
   }
 

@@ -189,5 +189,100 @@ describe('TaxCalculatorService', () => {
       expect(() => service.calculate(input)).toThrow(TaxCalculationError);
       expect(() => service.calculate(input)).toThrow('Выручка не может быть отрицательной');
     });
+
+    it('should calculate taxes for 2027 and 2028 years', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'УСН 6%',
+        revenue_2025: 1000000,
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: false,
+        nds_rate: 0,
+        incoming_nds: 0
+      };
+
+      const result = service.calculate(input);
+
+      expect(result.tax_2027).toBeDefined();
+      expect(result.tax_2028).toBeDefined();
+      expect(result.tax_2027.total).toBeGreaterThanOrEqual(0);
+      expect(result.tax_2028.total).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should apply НДС threshold changes for 2027 (15M threshold)', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'УСН 6%',
+        revenue_2025: 18000000, // > 15M but < 20M
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: true,
+        nds_rate: 5,
+        incoming_nds: 0
+      };
+
+      const result = service.calculate(input);
+
+      // В 2026 выручка 18M < 20M, НДС не применяется
+      expect(result.tax_2026.nds_tax).toBe(0);
+      
+      // В 2027 порог снижается до 15M, поэтому 18M > 15M, НДС применяется
+      expect(result.tax_2027.nds_tax).toBeGreaterThan(0);
+    });
+
+    it('should apply НДС threshold changes for 2028 (10M threshold)', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'УСН 6%',
+        revenue_2025: 12000000, // > 10M but < 15M
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: true,
+        nds_rate: 5,
+        incoming_nds: 0
+      };
+
+      const result = service.calculate(input);
+
+      // В 2026 и 2027 выручка 12M < порогов, НДС не применяется
+      expect(result.tax_2026.nds_tax).toBe(0);
+      expect(result.tax_2027.nds_tax).toBe(0);
+      
+      // В 2028 порог снижается до 10M, поэтому 12M > 10M, НДС применяется
+      expect(result.tax_2028.nds_tax).toBeGreaterThan(0);
+    });
+
+    it('should calculate consistent taxes across all years for same revenue', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'УСН 6%',
+        revenue_2025: 5000000, // < 10M, не применяется НДС ни в одном году
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: false,
+        nds_rate: 0,
+        incoming_nds: 0
+      };
+
+      const result = service.calculate(input);
+
+      // Основной налог должен быть одинаковым для всех лет (6% от выручки)
+      const expectedMainTax = 5000000 * 0.06;
+      expect(result.tax_2025.main_tax).toBe(expectedMainTax);
+      expect(result.tax_2026.main_tax).toBe(expectedMainTax);
+      expect(result.tax_2027.main_tax).toBe(expectedMainTax);
+      expect(result.tax_2028.main_tax).toBe(expectedMainTax);
+      
+      // НДС не применяется ни в одном году
+      expect(result.tax_2025.nds_tax).toBe(0);
+      expect(result.tax_2026.nds_tax).toBe(0);
+      expect(result.tax_2027.nds_tax).toBe(0);
+      expect(result.tax_2028.nds_tax).toBe(0);
+    });
   });
 });

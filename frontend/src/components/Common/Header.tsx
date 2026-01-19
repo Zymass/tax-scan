@@ -15,9 +15,32 @@ const Header: React.FC = () => {
   return (
     <header className="app-header">
       <div className="header-content">
-        <h1>Налоговый калькулятор 2026</h1>
+        <h1 
+          onClick={() => navigate('/calculator')}
+          style={{ cursor: 'pointer' }}
+        >
+          Налоговый калькулятор 2026
+        </h1>
         {user && (
           <div className="header-user">
+            <button
+              onClick={() => navigate('/calculator')}
+              className="btn-link"
+            >
+              Калькулятор
+            </button>
+            <button
+              onClick={() => navigate('/history')}
+              className="btn-link"
+            >
+              История
+            </button>
+            <button
+              onClick={() => navigate('/profile')}
+              className="btn-link"
+            >
+              Личный кабинет
+            </button>
             <span>{user.name}</span>
             <button onClick={handleLogout} className="btn-secondary btn-small">
               Выйти

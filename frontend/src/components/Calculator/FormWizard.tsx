@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCalculation } from '../../hooks/useCalculation';
 import Step1BasicInfo from './Step1BasicInfo';
 import Step2Personnel from './Step2Personnel';
@@ -8,6 +9,7 @@ import Step5Results from '../Results/Step5Results';
 import './FormWizard.css';
 
 const FormWizard: React.FC = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [calculationId, setCalculationId] = useState<string | null>(null);
   const [savedResults, setSavedResults] = useState<any>(null);
@@ -164,6 +166,11 @@ const FormWizard: React.FC = () => {
   if (!calculationId) {
     return (
       <div className="wizard-init">
+        <div className="wizard-header-actions">
+          <button onClick={() => navigate('/profile')} className="btn-secondary btn-small">
+            👤 Личный кабинет
+          </button>
+        </div>
         <h1>Калькулятор налоговой нагрузки 2026</h1>
         <p>Узнайте, сколько вы будете платить налогов в 2026 году</p>
         <button onClick={handleInit} disabled={loading} className="btn-primary">
@@ -179,6 +186,9 @@ const FormWizard: React.FC = () => {
       <div className="wizard-header-actions">
         <button onClick={handleNewCalculation} className="btn-secondary btn-small">
           ➕ Новый расчет
+        </button>
+        <button onClick={() => navigate('/profile')} className="btn-secondary btn-small">
+          👤 Личный кабинет
         </button>
       </div>
       <div className="wizard-progress">

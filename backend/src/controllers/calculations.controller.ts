@@ -179,6 +179,8 @@ export class CalculationsController {
         ...calculation,
         tax_2025: results.tax_2025 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 },
         tax_2026: results.tax_2026 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 },
+        tax_2027: results.tax_2027 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 },
+        tax_2028: results.tax_2028 || { main_tax: 0, nds_tax: 0, contributions: 0, total: 0 },
         recommended_regime: results.recommended_regime || 'Не указан',
         recommended_savings: results.recommended_savings || 0,
         recommendation: `Рекомендуемый режим: ${results.recommended_regime || 'Не указан'}. Экономия: ${(results.recommended_savings || 0).toLocaleString('ru-RU')} ₽`
