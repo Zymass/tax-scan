@@ -6,7 +6,6 @@ import CalculatorPage from './pages/CalculatorPage';
 import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
-import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import Footer from './components/Common/Footer';
 import './styles/globals.css';
@@ -48,14 +47,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/payment/success"
-            element={
-              <ProtectedRoute>
-                <PaymentSuccessPage />
               </ProtectedRoute>
             }
           />

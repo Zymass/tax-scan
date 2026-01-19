@@ -28,8 +28,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "puppeteer": "^24.35.0",
-    "typescript": "^5.0.0",
-    "@yookassa/sdk": "^2.0.0"
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "@jest/test-sequencer": "^29.0.0",

@@ -20,7 +20,6 @@ model User {
   calculations_limit    Int         @default(5) // Количество доступных расчетов
   
   calculations          Calculation[]
-  payments              Payment[]
   
   created_at            DateTime    @default(now())
   updated_at            DateTime    @updatedAt
@@ -114,29 +113,4 @@ model Scenario {
   created_at            DateTime    @default(now())
   
   @@index([calculation_id])
-}
-
-model Payment {
-  id                    String      @id @default(cuid())
-  user_id               String
-  user                  User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  
-  payment_id            String      @unique // ID платежа в платежной системе
-  amount                Float       // Сумма платежа
-  currency              String      @default("RUB")
-  status                String      @default("pending") // pending, succeeded, canceled, failed
-  payment_method        String?     // Способ оплаты
-  
-  calculations_added    Int         @default(0) // Количество расчетов, добавленных после оплаты
-  
-  metadata              String?     // Дополнительные данные в JSON
-  
-  created_at            DateTime    @default(now())
-  updated_at            DateTime    @updatedAt
-  paid_at               DateTime?
-  
-  @@index([user_id])
-  @@index([payment_id])
-  @@index([status])
-  @@index([created_at])
 }

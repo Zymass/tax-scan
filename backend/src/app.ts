@@ -10,7 +10,6 @@ dotenv.config();
 import authRoutes from './api/auth.routes';
 import calculationsRoutes from './api/calculations.routes';
 import actionsRoutes from './api/actions.routes';
-import paymentRoutes from './api/payment.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -55,7 +54,6 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/calculations', authMiddleware, calculationsRoutes);
 app.use('/api', authMiddleware, actionsRoutes);
-app.use('/api/payment', paymentRoutes);
 
 // Error handling
 app.use(errorHandler);

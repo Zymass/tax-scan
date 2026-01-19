@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
-// import { paymentService } from '../services/payment'; // Временно отключено
 import { User } from '../types';
 import Header from '../components/Common/Header';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
@@ -11,24 +10,10 @@ const ProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const [showPaymentModal, setShowPaymentModal] = useState(false); // Временно отключено
-  // const [calculationsToBuy, setCalculationsToBuy] = useState(5); // Временно отключено
-  // const [paymentLoading, setPaymentLoading] = useState(false); // Временно отключено
   const navigate = useNavigate();
-
-  // const PRICE_PER_CALCULATION = 100; // Цена за расчет в рублях - временно отключено
 
   useEffect(() => {
     loadProfile();
-    
-    // Проверяем, вернулись ли с оплаты
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment') === 'success') {
-      // Обновляем профиль после успешной оплаты
-      setTimeout(() => {
-        loadProfile();
-      }, 2000);
-    }
   }, []);
 
   const loadProfile = async () => {
@@ -43,10 +28,6 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  // Функция покупки расчетов временно отключена
-  // const handleBuyCalculations = async () => {
-  //   ...
-  // };
 
   if (loading) {
     return (
@@ -152,25 +133,10 @@ const ProfilePage: React.FC = () => {
                 >
                   История расчетов
                 </button>
-                {/* Кнопка оплаты временно скрыта */}
-                {/* <button 
-                  onClick={() => setShowPaymentModal(true)} 
-                  className="btn-primary"
-                  style={{ background: '#059669' }}
-                >
-                  💳 Купить расчеты
-                </button> */}
               </div>
             </div>
           </div>
         </div>
-
-        {/* Модальное окно оплаты временно скрыто */}
-        {/* {showPaymentModal && (
-          <div className="modal-overlay" onClick={() => setShowPaymentModal(false)}>
-            ...
-          </div>
-        )} */}
       </div>
     </div>
   );
