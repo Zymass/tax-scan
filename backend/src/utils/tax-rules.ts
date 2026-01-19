@@ -111,6 +111,15 @@ export function validateRegime(regime: string, statusType: string, revenue: numb
       throw new TaxCalculationError('НПД недоступен при наличии сотрудников', 'tax_regime');
     }
   }
+
+  if (regime === 'Патент') {
+    if (revenue > TAX_CONSTANTS.PATENT_MAX_REVENUE) {
+      throw new TaxCalculationError(
+        `Патент недоступен при выручке более ${TAX_CONSTANTS.PATENT_MAX_REVENUE.toLocaleString('ru-RU')} руб.`,
+        'tax_regime'
+      );
+    }
+  }
 }
 
 export function calculateUsnTax(
@@ -249,7 +258,9 @@ export function calculateTotalTaxForRegime(
   ndsRate: number,
   incomingNds: number = 0,
   contributionRate: number = 30,
-  statusType: string = 'ИП'
+  statusType: string = 'ИП',
+  npdRate: number = 4, // Ставка НПД: 4% или 6%
+  patentRate?: number // Ставка патента (опционально, зависит от региона)
 ): TaxRuleResult {
   // Валидация всех входных данных
   validateRevenue(revenue);
@@ -286,9 +297,21 @@ export function calculateTotalTaxForRegime(
       break;
 
     case 'НПД':
-      mainTax = revenue * 0.04; // или 0.06
+      if (npdRate !== 4 && npdRate !== 6) {
+        throw new TaxCalculationError('Ставка НПД должна быть 4% или 6%', 'npd_rate');
+      }
+      mainTax = revenue * (npdRate / 100);
       ndsTax = 0;
       contributions = 0; // Самозанятый не платит взносы
+      break;
+
+    case 'Патент':
+      // Патент: обычно рассчитывается по региональным ставкам, но для упрощения используем 6% от выручки
+      // В реальности патент имеет фиксированную стоимость, но для калькулятора используем процент
+      const patentTaxRate = patentRate || 0.06; // По умолчанию 6%
+      mainTax = revenue * patentTaxRate;
+      ndsTax = 0; // Патент не платит НДС
+      contributions = calculateContributions(countEmployees, fot, contributionRate);
       break;
 
     default:

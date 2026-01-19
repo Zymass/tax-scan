@@ -19,6 +19,8 @@ export interface CalculationInput {
   nds_rate?: number;
   incoming_nds?: number;
   region_code?: string;
+  npd_rate?: number; // Ставка НПД: 4 или 6
+  patent_rate?: number; // Ставка патента (опционально)
 }
 
 export interface CalculationOutput {
@@ -72,7 +74,9 @@ export class TaxCalculatorService {
       fot_year = 0,
       applies_nds = false,
       nds_rate = 0,
-      incoming_nds = 0
+      incoming_nds = 0,
+      npd_rate = 4, // По умолчанию 4%
+      patent_rate
     } = input;
 
     try {
@@ -87,7 +91,9 @@ export class TaxCalculatorService {
         applies_nds ? nds_rate : 0,
         incoming_nds,
         contributionRate2025,
-        status_type
+        status_type,
+        npd_rate,
+        patent_rate
       );
 
       // 2026 calculations (30% contributions for employees if revenue > 20M, new NDS rates)
@@ -103,7 +109,9 @@ export class TaxCalculatorService {
         applies_nds ? ndsRate2026 : 0,
         incoming_nds,
         contributionRate2026,
-        status_type
+        status_type,
+        npd_rate,
+        patent_rate
       );
 
       // 2027 calculations (порог НДС снижается до 15M)
@@ -119,7 +127,9 @@ export class TaxCalculatorService {
         applies_nds ? ndsRate2027 : 0,
         incoming_nds,
         contributionRate2027,
-        status_type
+        status_type,
+        npd_rate,
+        patent_rate
       );
 
       // 2028 calculations (порог НДС снижается до 10M)
@@ -135,7 +145,9 @@ export class TaxCalculatorService {
         applies_nds ? ndsRate2028 : 0,
         incoming_nds,
         contributionRate2028,
-        status_type
+        status_type,
+        npd_rate,
+        patent_rate
       );
 
       // Calculate alternative regimes
@@ -147,7 +159,9 @@ export class TaxCalculatorService {
         applies_nds,
         ndsRate2026,
         incoming_nds,
-        status_type
+        status_type,
+        npd_rate,
+        patent_rate
       );
 
       const currentTaxTotal = tax2026.total;
@@ -237,7 +251,9 @@ export class TaxCalculatorService {
     appliesNds: boolean,
     ndsRate: number,
     incomingNds: number,
-    statusType: string
+    statusType: string,
+    npdRate: number = 4,
+    patentRate?: number
   ) {
     const regimes = ['УСН 6%', 'УСН 15%', 'ОСНО', 'НПД'];
     const results = [];
@@ -266,7 +282,9 @@ export class TaxCalculatorService {
           appliesNds && ['УСН 6%', 'ОСНО'].includes(regime) ? ndsRate : 0,
           incomingNds,
           contributionRate,
-          statusType
+          statusType,
+          npdRate,
+          patentRate
         );
 
         results.push({
@@ -309,6 +327,9 @@ export class TaxCalculatorService {
         return revenue <= TAX_CONSTANTS.NDP_MAX_REVENUE && 
                countEmployees === 0 && 
                statusType === 'Самозанятый';
+
+      case 'Патент':
+        return revenue <= TAX_CONSTANTS.PATENT_MAX_REVENUE;
 
       case 'ОСНО':
         return true; // Always available

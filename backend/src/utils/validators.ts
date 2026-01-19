@@ -15,7 +15,13 @@ export const loginSchema = Joi.object({
 export const step1Schema = Joi.object({
   status_type: Joi.string().valid('ИП', 'ООО', 'Самозанятый').required(),
   tax_regime: Joi.string().required(),
-  revenue_2025: Joi.number().min(0).max(1000000000).required(),
+  revenue_2025: Joi.number().min(0).max(1000000000).required()
+    .when('status_type', {
+      is: 'Самозанятый',
+      then: Joi.number().max(2400000).messages({
+        'number.max': 'Для самозанятого выручка не может превышать 2 400 000 руб. в год'
+      })
+    }),
   region_code: Joi.string().optional(),
   expenses_2025: Joi.number().min(0).optional()
 });

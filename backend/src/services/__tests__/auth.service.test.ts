@@ -59,6 +59,8 @@ describe('AuthService', () => {
           password_hash: 'hashed-password',
           name: 'Test User',
           phone: undefined,
+          auth_provider: 'email',
+          calculations_limit: 5,
         },
       });
       expect(jwt.sign).toHaveBeenCalledWith(
@@ -124,6 +126,8 @@ describe('AuthService', () => {
           password_hash: 'hashed-password',
           name: 'Test User',
           phone: '+79991234567',
+          auth_provider: 'email',
+          calculations_limit: 5,
         },
       });
     });

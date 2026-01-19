@@ -10,7 +10,7 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
 export const isGoogleOAuthEnabled = !!(googleClientId && googleClientSecret);
 
-if (isGoogleOAuthEnabled) {
+if (isGoogleOAuthEnabled && googleClientId && googleClientSecret) {
   passport.use(
     new GoogleStrategy(
       {
@@ -28,7 +28,7 @@ if (isGoogleOAuthEnabled) {
           });
           return done(null, result);
         } catch (error: any) {
-          return done(error, null);
+          return done(error, false);
         }
       }
     )

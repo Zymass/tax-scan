@@ -45,9 +45,9 @@ export class AuthController {
   async googleCallback(req: Request, res: Response) {
     try {
       // @ts-ignore - passport attaches user to request
-      const result = req.user;
+      const result = req.user as { user: any; token: string } | undefined;
       
-      if (!result) {
+      if (!result || !result.token) {
         return res.status(401).json({ error: 'Authentication failed' });
       }
 

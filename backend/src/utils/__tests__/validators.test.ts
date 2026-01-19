@@ -160,6 +160,41 @@ describe('Validators', () => {
       const { error } = step1Schema.validate(invalidData);
       expect(error).toBeDefined();
     });
+
+    it('should reject revenue > 2.4M for самозанятый', () => {
+      const invalidData = {
+        status_type: 'Самозанятый',
+        tax_regime: 'НПД',
+        revenue_2025: 2500000,
+      };
+
+      const { error } = step1Schema.validate(invalidData);
+      expect(error).toBeDefined();
+      expect(error?.details[0].path).toContain('revenue_2025');
+      expect(error?.details[0].message).toContain('2 400 000');
+    });
+
+    it('should accept revenue <= 2.4M for самозанятый', () => {
+      const validData = {
+        status_type: 'Самозанятый',
+        tax_regime: 'НПД',
+        revenue_2025: 2400000,
+      };
+
+      const { error } = step1Schema.validate(validData);
+      expect(error).toBeUndefined();
+    });
+
+    it('should accept revenue > 2.4M for non-самозанятый', () => {
+      const validData = {
+        status_type: 'ИП',
+        tax_regime: 'УСН 6%',
+        revenue_2025: 5000000,
+      };
+
+      const { error } = step1Schema.validate(validData);
+      expect(error).toBeUndefined();
+    });
   });
 
   describe('step2Schema', () => {

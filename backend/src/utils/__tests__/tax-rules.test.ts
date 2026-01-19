@@ -5,6 +5,11 @@ import {
   getNdsRate,
   recommendedRegime,
   calculateTotalTaxForRegime,
+  validateRevenue,
+  validateExpenses,
+  validateEmployees,
+  validateFot,
+  validateRegime,
   TaxCalculationError,
   TAX_CONSTANTS
 } from '../tax-rules';
@@ -175,12 +180,43 @@ describe('Tax Rules Calculations', () => {
       expect(result.total).toBe(350000);
     });
 
-    it('should calculate НПД correctly', () => {
-      const result = calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'Самозанятый');
+    it('should calculate НПД correctly with 4% rate', () => {
+      const result = calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'Самозанятый', 4);
       expect(result.main_tax).toBe(40000);
       expect(result.nds_tax).toBe(0);
       expect(result.contributions).toBe(0);
       expect(result.total).toBe(40000);
+    });
+
+    it('should calculate НПД correctly with 6% rate', () => {
+      const result = calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'Самозанятый', 6);
+      expect(result.main_tax).toBe(60000);
+      expect(result.nds_tax).toBe(0);
+      expect(result.contributions).toBe(0);
+      expect(result.total).toBe(60000);
+    });
+
+    it('should throw error for НПД with invalid rate', () => {
+      expect(() => calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'Самозанятый', 5))
+        .toThrow(TaxCalculationError);
+      expect(() => calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'Самозанятый', 5))
+        .toThrow('Ставка НПД должна быть 4% или 6%');
+    });
+
+    it('should calculate Патент correctly', () => {
+      const result = calculateTotalTaxForRegime('Патент', 1000000, 0, 0, 0, 0, 0, 30, 'ИП', 4, 0.06);
+      expect(result.main_tax).toBe(60000); // 1M * 0.06
+      expect(result.nds_tax).toBe(0);
+      expect(result.contributions).toBe(0);
+      expect(result.total).toBe(60000);
+    });
+
+    it('should calculate Патент with custom rate', () => {
+      const result = calculateTotalTaxForRegime('Патент', 1000000, 0, 2, 500000, 0, 0, 30, 'ИП', 4, 0.05);
+      expect(result.main_tax).toBe(50000); // 1M * 0.05
+      expect(result.nds_tax).toBe(0);
+      expect(result.contributions).toBeGreaterThan(0); // Есть сотрудники
+      expect(result.total).toBeGreaterThan(50000);
     });
 
     it('should throw error for invalid regime', () => {
@@ -207,6 +243,149 @@ describe('Tax Rules Calculations', () => {
         .toThrow(TaxCalculationError);
       expect(() => calculateTotalTaxForRegime('НПД', 1000000, 0, 0, 0, 0, 0, 30, 'ИП'))
         .toThrow('НПД доступен только для самозанятых');
+    });
+
+    it('should throw error for Патент with revenue > 2.4M', () => {
+      expect(() => calculateTotalTaxForRegime('Патент', 3000000, 0, 0, 0, 0, 0, 30, 'ИП'))
+        .toThrow(TaxCalculationError);
+      expect(() => calculateTotalTaxForRegime('Патент', 3000000, 0, 0, 0, 0, 0, 30, 'ИП'))
+        .toThrow('Патент недоступен при выручке более');
+    });
+  });
+
+  describe('validateRevenue', () => {
+    it('should not throw for valid revenue', () => {
+      expect(() => validateRevenue(1000000)).not.toThrow();
+      expect(() => validateRevenue(0)).not.toThrow();
+      expect(() => validateRevenue(10000000000)).not.toThrow();
+    });
+
+    it('should throw for negative revenue', () => {
+      expect(() => validateRevenue(-1000)).toThrow(TaxCalculationError);
+      expect(() => validateRevenue(-1000)).toThrow('Выручка не может быть отрицательной');
+    });
+
+    it('should throw for revenue > 10B', () => {
+      expect(() => validateRevenue(10000000001)).toThrow(TaxCalculationError);
+      expect(() => validateRevenue(10000000001)).toThrow('Выручка слишком большая');
+    });
+
+    it('should throw for NaN revenue', () => {
+      expect(() => validateRevenue(NaN)).toThrow(TaxCalculationError);
+      expect(() => validateRevenue(NaN)).toThrow('Выручка должна быть числом');
+    });
+
+    it('should throw for null/undefined revenue', () => {
+      expect(() => validateRevenue(null as any)).toThrow(TaxCalculationError);
+      expect(() => validateRevenue(undefined as any)).toThrow(TaxCalculationError);
+    });
+  });
+
+  describe('validateExpenses', () => {
+    it('should not throw for valid expenses', () => {
+      expect(() => validateExpenses(500000, 1000000)).not.toThrow();
+      expect(() => validateExpenses(0, 1000000)).not.toThrow();
+      expect(() => validateExpenses(1000000, 1000000)).not.toThrow();
+    });
+
+    it('should throw for negative expenses', () => {
+      expect(() => validateExpenses(-1000, 1000000)).toThrow(TaxCalculationError);
+      expect(() => validateExpenses(-1000, 1000000)).toThrow('Расходы не могут быть отрицательными');
+    });
+
+    it('should throw when expenses exceed revenue', () => {
+      expect(() => validateExpenses(2000000, 1000000)).toThrow(TaxCalculationError);
+      expect(() => validateExpenses(2000000, 1000000)).toThrow('Расходы не могут превышать выручку');
+    });
+
+    it('should throw for NaN expenses', () => {
+      expect(() => validateExpenses(NaN, 1000000)).toThrow(TaxCalculationError);
+      expect(() => validateExpenses(NaN, 1000000)).toThrow('Расходы должны быть числом');
+    });
+  });
+
+  describe('validateEmployees', () => {
+    it('should not throw for valid employee count', () => {
+      expect(() => validateEmployees(0)).not.toThrow();
+      expect(() => validateEmployees(5)).not.toThrow();
+      expect(() => validateEmployees(10000)).not.toThrow();
+    });
+
+    it('should throw for negative employees', () => {
+      expect(() => validateEmployees(-1)).toThrow(TaxCalculationError);
+      expect(() => validateEmployees(-1)).toThrow('Количество сотрудников не может быть отрицательным');
+    });
+
+    it('should throw for employees > 10000', () => {
+      expect(() => validateEmployees(10001)).toThrow(TaxCalculationError);
+      expect(() => validateEmployees(10001)).toThrow('Количество сотрудников слишком большое');
+    });
+
+    it('should throw for NaN employees', () => {
+      expect(() => validateEmployees(NaN)).toThrow(TaxCalculationError);
+      expect(() => validateEmployees(NaN)).toThrow('Количество сотрудников должно быть числом');
+    });
+  });
+
+  describe('validateFot', () => {
+    it('should not throw for valid FoT', () => {
+      expect(() => validateFot(0, 0)).not.toThrow();
+      expect(() => validateFot(1000000, 5)).not.toThrow();
+    });
+
+    it('should throw for negative FoT', () => {
+      expect(() => validateFot(-1000, 5)).toThrow(TaxCalculationError);
+      expect(() => validateFot(-1000, 5)).toThrow('ФОТ не может быть отрицательным');
+    });
+
+    it('should throw when employees > 0 but FoT = 0', () => {
+      expect(() => validateFot(0, 5)).toThrow(TaxCalculationError);
+      expect(() => validateFot(0, 5)).toThrow('При наличии сотрудников ФОТ должен быть больше нуля');
+    });
+
+    it('should throw for NaN FoT', () => {
+      expect(() => validateFot(NaN, 5)).toThrow(TaxCalculationError);
+      expect(() => validateFot(NaN, 5)).toThrow('ФОТ должен быть числом');
+    });
+  });
+
+  describe('validateRegime', () => {
+    it('should not throw for valid regimes', () => {
+      expect(() => validateRegime('УСН 6%', 'ИП', 1000000, 0)).not.toThrow();
+      expect(() => validateRegime('УСН 15%', 'ИП', 1000000, 0)).not.toThrow();
+      expect(() => validateRegime('ОСНО', 'ИП', 1000000, 0)).not.toThrow();
+      expect(() => validateRegime('Патент', 'ИП', 2000000, 0)).not.toThrow();
+      expect(() => validateRegime('НПД', 'Самозанятый', 2000000, 0)).not.toThrow();
+    });
+
+    it('should throw for invalid regime', () => {
+      expect(() => validateRegime('INVALID', 'ИП', 1000000, 0)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('INVALID', 'ИП', 1000000, 0)).toThrow('Недопустимый режим налогообложения');
+    });
+
+    it('should throw for empty regime', () => {
+      expect(() => validateRegime('', 'ИП', 1000000, 0)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('', 'ИП', 1000000, 0)).toThrow('Режим налогообложения не указан');
+    });
+
+    it('should throw for Патент with revenue > 2.4M', () => {
+      expect(() => validateRegime('Патент', 'ИП', 3000000, 0)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('Патент', 'ИП', 3000000, 0)).toThrow('Патент недоступен при выручке более');
+    });
+
+    it('should throw for НПД with revenue > 2.4M', () => {
+      expect(() => validateRegime('НПД', 'Самозанятый', 3000000, 0)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('НПД', 'Самозанятый', 3000000, 0)).toThrow('НПД недоступен при выручке более');
+    });
+
+    it('should throw for НПД with wrong status', () => {
+      expect(() => validateRegime('НПД', 'ИП', 1000000, 0)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('НПД', 'ИП', 1000000, 0)).toThrow('НПД доступен только для самозанятых');
+    });
+
+    it('should throw for НПД with employees', () => {
+      expect(() => validateRegime('НПД', 'Самозанятый', 1000000, 5)).toThrow(TaxCalculationError);
+      expect(() => validateRegime('НПД', 'Самозанятый', 1000000, 5)).toThrow('НПД недоступен при наличии сотрудников');
     });
   });
 });

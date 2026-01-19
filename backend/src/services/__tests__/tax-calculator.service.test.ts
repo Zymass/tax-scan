@@ -141,7 +141,7 @@ describe('TaxCalculatorService', () => {
       expect(result.recommended_savings).toBeGreaterThanOrEqual(0);
     });
 
-    it('should handle НПД for самозанятый', () => {
+    it('should handle НПД for самозанятый with 4% rate', () => {
       const input = {
         status_type: 'Самозанятый',
         tax_regime: 'НПД',
@@ -151,13 +151,72 @@ describe('TaxCalculatorService', () => {
         fot_year: 0,
         applies_nds: false,
         nds_rate: 0,
-        incoming_nds: 0
+        incoming_nds: 0,
+        npd_rate: 4
       };
 
       const result = service.calculate(input);
 
       expect(result.tax_2025.main_tax).toBe(80000); // 2M * 0.04
       expect(result.tax_2025.contributions).toBe(0);
+    });
+
+    it('should handle НПД for самозанятый with 6% rate', () => {
+      const input = {
+        status_type: 'Самозанятый',
+        tax_regime: 'НПД',
+        revenue_2025: 2000000,
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: false,
+        nds_rate: 0,
+        incoming_nds: 0,
+        npd_rate: 6
+      };
+
+      const result = service.calculate(input);
+
+      expect(result.tax_2025.main_tax).toBe(120000); // 2M * 0.06
+      expect(result.tax_2025.contributions).toBe(0);
+    });
+
+    it('should handle Патент correctly', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'Патент',
+        revenue_2025: 2000000,
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: false,
+        nds_rate: 0,
+        incoming_nds: 0,
+        patent_rate: 0.06
+      };
+
+      const result = service.calculate(input);
+
+      expect(result.tax_2025.main_tax).toBe(120000); // 2M * 0.06
+      expect(result.tax_2025.nds_tax).toBe(0);
+      expect(result.tax_2025.contributions).toBe(0);
+    });
+
+    it('should throw error for Патент with revenue > 2.4M', () => {
+      const input = {
+        status_type: 'ИП',
+        tax_regime: 'Патент',
+        revenue_2025: 3000000,
+        expenses_2025: 0,
+        count_employees: 0,
+        fot_year: 0,
+        applies_nds: false,
+        nds_rate: 0,
+        incoming_nds: 0
+      };
+
+      expect(() => service.calculate(input)).toThrow(TaxCalculationError);
+      expect(() => service.calculate(input)).toThrow('Патент недоступен при выручке более');
     });
 
     it('should throw error for НПД with employees', () => {

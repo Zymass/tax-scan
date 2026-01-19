@@ -206,7 +206,7 @@ const FormWizard: React.FC = () => {
 
       <div className="wizard-content">
         {currentStep === 1 && <Step1BasicInfo onNext={handleNext} initialData={formData.step1} />}
-        {currentStep === 2 && <Step2Personnel onNext={handleNext} onPrevious={handlePrevious} initialData={formData.step2} />}
+        {currentStep === 2 && <Step2Personnel onNext={handleNext} onPrevious={handlePrevious} initialData={formData.step2} step1Data={formData.step1} />}
         {currentStep === 3 && <Step3NDS onNext={handleNext} onPrevious={handlePrevious} initialData={formData.step3} />}
         {currentStep === 4 && <Step4TaxRegime onNext={handleNext} onPrevious={handlePrevious} initialData={formData.step4} />}
         {currentStep === 5 && (

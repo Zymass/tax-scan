@@ -57,10 +57,44 @@ const Step3NDS: React.FC<Step3Props> = ({ onNext, onPrevious, initialData }) => 
           <div className="form-group">
             <label>Входящий НДС (руб.):</label>
             <input
-              type="number"
-              value={formData.incoming_nds}
-              onChange={(e) => handleChange('incoming_nds', parseInt(e.target.value) || 0)}
-              min="0"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={formData.incoming_nds === 0 ? '' : formData.incoming_nds}
+              onChange={(e) => {
+                let value = e.target.value;
+                
+                // Убираем все нецифровые символы
+                value = value.replace(/[^\d]/g, '');
+                
+                // Убираем ведущие нули, но оставляем один ноль если значение равно "0"
+                if (value.length > 1 && value[0] === '0') {
+                  value = value.replace(/^0+/, '');
+                }
+                
+                // Если пусто, устанавливаем 0
+                if (value === '') {
+                  handleChange('incoming_nds', 0);
+                } else {
+                  const numValue = parseInt(value, 10);
+                  if (!isNaN(numValue) && numValue >= 0) {
+                    handleChange('incoming_nds', numValue);
+                  }
+                }
+              }}
+              onBlur={(e) => {
+                // При потере фокуса нормализуем значение
+                const value = e.target.value.replace(/[^\d]/g, '');
+                if (value === '') {
+                  handleChange('incoming_nds', 0);
+                } else {
+                  const cleanedValue = value.replace(/^0+/, '') || '0';
+                  const numValue = parseInt(cleanedValue, 10);
+                  if (!isNaN(numValue) && numValue >= 0) {
+                    handleChange('incoming_nds', numValue);
+                  }
+                }
+              }}
             />
           </div>
         </>

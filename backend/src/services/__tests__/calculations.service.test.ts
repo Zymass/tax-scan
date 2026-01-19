@@ -5,6 +5,9 @@ import { TaxCalculatorService } from '../tax-calculator.service';
 // Mock dependencies
 jest.mock('../../db', () => ({
   prisma: {
+    user: {
+      findUnique: jest.fn(),
+    },
     calculation: {
       create: jest.fn(),
       findMany: jest.fn(),
@@ -32,6 +35,11 @@ describe('CalculationsService', () => {
   describe('createCalculation', () => {
     it('should create a new calculation with default values', async () => {
       const userId = 'user-123';
+      const mockUser = {
+        id: userId,
+        email: 'test@example.com',
+        name: 'Test User',
+      };
       const mockCalculation = {
         id: 'calc-123',
         user_id: userId,
@@ -46,6 +54,7 @@ describe('CalculationsService', () => {
         updated_at: new Date(),
       };
 
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       (prisma.calculation.create as jest.Mock).mockResolvedValue(mockCalculation);
 
       const result = await service.createCalculation(userId);
