@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import FormWizard from '../components/Calculator/FormWizard';
 import Header from '../components/Common/Header';
 import ProtectedRoute from '../components/Common/ProtectedRoute';

@@ -55,9 +55,7 @@ const ProfilePage: React.FC = () => {
     return null;
   }
 
-  const availableCalculations = profile.available_calculations ?? 0;
   const calculationsCount = profile.calculations_count ?? 0;
-  const calculationsLimit = profile.calculations_limit ?? 5;
 
   return (
     <div className="page-container">
