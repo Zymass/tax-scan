@@ -1,111 +1,101 @@
 #!/bin/bash
 
-# Скрипт деплоя TaxCalculator на VPS
-# Использование: ./deploy.sh
+# Скрипт для автоматического деплоя на сервер
+# Использование: ./deploy.sh root@141.98.188.75
 
-set -e
+set -e  # Остановка при ошибке
 
-echo "🚀 Начинаем деплой TaxCalculator..."
+SERVER=$1
+if [ -z "$SERVER" ]; then
+    echo "Использование: ./deploy.sh user@server-ip"
+    echo "Пример: ./deploy.sh root@141.98.188.75"
+    exit 1
+fi
 
-# Цвета для вывода
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+echo "🚀 Начинаем деплой на $SERVER..."
 
-# Параметры сервера
-SERVER_IP="94.131.110.30"
-SERVER_USER="root"
-SERVER_DOMAIN="vm3937869.example.com"
-APP_DIR="/var/www/taxcalculator"
-BACKEND_DIR="$APP_DIR/backend"
-FRONTEND_DIR="$APP_DIR/frontend"
+# Создаем временную директорию
+TEMP_DIR=$(mktemp -d)
+echo "📦 Создана временная директория: $TEMP_DIR"
 
-echo -e "${YELLOW}📦 Подключение к серверу...${NC}"
+# Копируем проект (исключая ненужные файлы)
+echo "📂 Копируем файлы проекта..."
+rsync -av --progress \
+  --exclude='node_modules' \
+  --exclude='.git' \
+  --exclude='backend/dist' \
+  --exclude='frontend/dist' \
+  --exclude='backend/prisma/dev.db' \
+  --exclude='backend/prisma/dev.db-journal' \
+  --exclude='.env' \
+  --exclude='.env.local' \
+  --exclude='*.log' \
+  --exclude='.DS_Store' \
+  ./ "$TEMP_DIR/taxcalculator/"
 
-# Создаем директорию на сервере
-ssh $SERVER_USER@$SERVER_IP "mkdir -p $APP_DIR"
+# Создаем архив
+echo "📦 Создаем архив..."
+cd "$TEMP_DIR"
+tar -czf taxcalculator.tar.gz taxcalculator/
 
-# Копируем файлы проекта
-echo -e "${YELLOW}📤 Копирование файлов на сервер...${NC}"
-rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'build' \
-  ./backend/ $SERVER_USER@$SERVER_IP:$BACKEND_DIR/
-rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude 'build' \
-  ./frontend/ $SERVER_USER@$SERVER_IP:$FRONTEND_DIR/
+# Загружаем на сервер
+echo "⬆️  Загружаем на сервер..."
+scp taxcalculator.tar.gz "$SERVER:/tmp/"
 
 # Выполняем команды на сервере
-echo -e "${YELLOW}🔧 Настройка окружения на сервере...${NC}"
-
-ssh $SERVER_USER@$SERVER_IP << 'ENDSSH'
+echo "🔧 Устанавливаем на сервере..."
+ssh "$SERVER" << 'ENDSSH'
 set -e
 
-APP_DIR="/var/www/taxcalculator"
-BACKEND_DIR="$APP_DIR/backend"
-FRONTEND_DIR="$APP_DIR/frontend"
+# Создаем директорию
+mkdir -p /var/www/taxcalculator
+cd /var/www/taxcalculator
 
-# Установка Node.js (если не установлен)
-if ! command -v node &> /dev/null; then
-    echo "📦 Установка Node.js..."
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt-get install -y nodejs
-fi
+# Распаковываем архив
+echo "📦 Распаковываем архив..."
+tar -xzf /tmp/taxcalculator.tar.gz --strip-components=1
 
-# Установка PM2 (если не установлен)
-if ! command -v pm2 &> /dev/null; then
-    echo "📦 Установка PM2..."
-    npm install -g pm2
-fi
-
-# Установка Nginx (если не установлен)
-if ! command -v nginx &> /dev/null; then
-    echo "📦 Установка Nginx..."
-    apt-get update
-    apt-get install -y nginx
-fi
-
-# Backend setup
-echo "🔧 Настройка бэкенда..."
-cd $BACKEND_DIR
-
-# Установка зависимостей
-npm install --production
-
-# Генерация Prisma клиента
-npx prisma generate
-
-# Создание .env файла (если не существует)
-if [ ! -f .env ]; then
-    echo "📝 Создание .env файла..."
-    cat > .env << EOF
-NODE_ENV=production
-PORT=3000
-DATABASE_URL="file:./prisma/prod.db"
-JWT_SECRET=$(openssl rand -base64 32)
-FRONTEND_URL=http://vm3937869.example.com
-EOF
-fi
-
-# Миграция базы данных
-npx prisma migrate deploy || npx prisma migrate dev --name init
-
-# Сборка TypeScript
-npm run build
-
-# Frontend setup
-echo "🔧 Настройка фронтенда..."
-cd $FRONTEND_DIR
-
-# Установка зависимостей
+# Устанавливаем backend зависимости (включая dev для сборки TypeScript)
+echo "📦 Устанавливаем backend зависимости..."
+cd backend
 npm install
 
-# Сборка фронтенда
+# Генерируем Prisma Client
+echo "🔧 Генерируем Prisma Client..."
+npx prisma generate
+
+# Запускаем миграции
+echo "🗄️  Запускаем миграции..."
+npx prisma migrate deploy || echo "⚠️  Миграции уже применены или база не существует"
+
+# Собираем backend
+echo "🔨 Собираем backend..."
 npm run build
 
-echo "✅ Настройка завершена!"
+# Устанавливаем frontend зависимости
+echo "📦 Устанавливаем frontend зависимости..."
+cd ../frontend
+npm install
+
+# Собираем frontend
+echo "🔨 Собираем frontend..."
+npm run build
+
+# Перезапускаем PM2
+echo "🔄 Перезапускаем backend..."
+cd ../backend
+pm2 restart taxcalculator-backend || pm2 start dist/app.js --name taxcalculator-backend
+
+# Сохраняем PM2 конфигурацию
+pm2 save
+
+echo "✅ Деплой завершен!"
+echo "📝 Не забудьте проверить .env файлы в backend/ и frontend/"
 ENDSSH
 
-echo -e "${GREEN}✅ Деплой завершен!${NC}"
-echo -e "${YELLOW}📝 Следующие шаги:${NC}"
-echo "1. Настройте Nginx конфигурацию"
-echo "2. Запустите приложение через PM2: pm2 start ecosystem.config.js"
-echo "3. Сохраните PM2 конфигурацию: pm2 save"
+# Очищаем временные файлы
+echo "🧹 Очищаем временные файлы..."
+rm -rf "$TEMP_DIR"
+
+echo "✅ Готово! Проект развернут на $SERVER"
+echo "🌐 Откройте http://$(echo $SERVER | cut -d'@' -f2) в браузере"
