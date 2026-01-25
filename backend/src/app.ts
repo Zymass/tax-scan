@@ -10,6 +10,7 @@ dotenv.config();
 import authRoutes from './api/auth.routes';
 import calculationsRoutes from './api/calculations.routes';
 import actionsRoutes from './api/actions.routes';
+import analyticsRoutes from './api/analytics.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
@@ -20,6 +21,9 @@ import './config/passport.config';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust proxy (needed when behind nginx reverse proxy)
+app.set('trust proxy', true);
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
@@ -54,6 +58,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/calculations', authMiddleware, calculationsRoutes);
 app.use('/api', authMiddleware, actionsRoutes);
+app.use('/api/analytics', authMiddleware, analyticsRoutes);
 
 // Error handling
 app.use(errorHandler);

@@ -1,269 +1,227 @@
-# Инструкция по деплою TaxCalculator на VPS
+# 🚀 Запуск проекта на удаленном сервере
 
-## Информация о сервере
-- **IP**: 94.131.110.30
-- **Домен**: vm3937869.example.com
-- **Пользователь**: root
-- **Пароль**: 12345678
+## Быстрый деплой
 
-## Быстрый деплой (автоматический)
-
-### Вариант 1: Использование скрипта деплоя
-
+### 1. Подключение к серверу
 ```bash
-# Сделайте скрипт исполняемым
-chmod +x deploy.sh
-
-# Запустите деплой
-./deploy.sh
+ssh root@your-server-ip
 ```
 
-### Вариант 2: Ручной деплой
-
-## Шаг 1: Подключение к серверу
-
+### 2. Установка зависимостей системы
 ```bash
-ssh root@94.131.110.30
-# Пароль: 12345678
-```
-
-## Шаг 2: Подготовка сервера
-
-```bash
-# Обновление системы
-apt-get update && apt-get upgrade -y
-
-# Установка Node.js 20.x
+apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-apt-get install -y nodejs
-
-# Установка PM2
+apt install -y nodejs nginx git
 npm install -g pm2
+```
 
-# Установка Nginx
-apt-get install -y nginx
+### 3. Загрузка проекта
 
-# Создание директорий
+**Вариант A: Через Git**
+```bash
 mkdir -p /var/www/taxcalculator
-mkdir -p /var/log/pm2
+cd /var/www/taxcalculator
+git clone https://github.com/Zymass/tax-scan.git
+cd tax-scan
 ```
 
-## Шаг 3: Загрузка проекта
-
-### С локального компьютера:
-
+**Вариант B: Через SCP (с локального компьютера)**
 ```bash
-# Из директории проекта
+# На вашем компьютере:
 cd /Users/iliafiliaev/Develop/TaxCalculator
+tar -czf taxcalculator.tar.gz --exclude='node_modules' --exclude='.git' --exclude='backend/dist' --exclude='frontend/dist' --exclude='backend/prisma/dev.db' backend/ frontend/
+scp taxcalculator.tar.gz root@your-server-ip:/tmp/
 
-# Загрузка бэкенда
-rsync -avz --exclude 'node_modules' --exclude '.git' \
-  ./backend/ root@94.131.110.30:/var/www/taxcalculator/backend/
-
-# Загрузка фронтенда
-rsync -avz --exclude 'node_modules' --exclude '.git' \
-  ./frontend/ root@94.131.110.30:/var/www/taxcalculator/frontend/
-
-# Загрузка конфигурационных файлов
-scp backend/ecosystem.config.js root@94.131.110.30:/var/www/taxcalculator/
-scp nginx.conf root@94.131.110.30:/tmp/nginx-taxcalculator.conf
+# На сервере:
+mkdir -p /var/www/taxcalculator
+cd /var/www/taxcalculator
+tar -xzf /tmp/taxcalculator.tar.gz
+mv backend tax-scan/backend
+mv frontend tax-scan/frontend
+cd tax-scan
 ```
 
-## Шаг 4: Настройка на сервере
-
-### На сервере выполните:
+### 4. Автоматическая настройка (рекомендуется)
 
 ```bash
-cd /var/www/taxcalculator/backend
+# Скопируйте server-setup.sh на сервер
+scp server-setup.sh root@your-server-ip:/tmp/
 
-# Установка зависимостей
-npm install --production
+# На сервере выполните:
+bash /tmp/server-setup.sh
+```
 
-# Генерация Prisma клиента
-npx prisma generate
+### 5. Ручная настройка
 
-# Создание .env файла
+#### 5.1. Установка системных зависимостей для Puppeteer
+```bash
+apt update
+apt install -y \
+  ca-certificates \
+  fonts-liberation \
+  libatk-bridge2.0-0 \
+  libatk1.0-0 \
+  libc6 \
+  libcairo2 \
+  libcups2 \
+  libdbus-1-3 \
+  libexpat1 \
+  libfontconfig1 \
+  libgbm1 \
+  libgcc1 \
+  libglib2.0-0 \
+  libgtk-3-0 \
+  libnspr4 \
+  libnss3 \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libstdc++6 \
+  libx11-6 \
+  libx11-xcb1 \
+  libxcb1 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxext6 \
+  libxfixes3 \
+  libxi6 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+  wget \
+  xdg-utils
+
+# Для Ubuntu 24.04+ установите libasound2t64
+apt install -y libasound2t64 || apt install -y libasound2 || true
+```
+
+#### 5.2. Настройка Backend
+```bash
+cd /var/www/taxcalculator/tax-scan/backend
+
+# Создаем .env
 cat > .env << EOF
-NODE_ENV=production
-PORT=3000
 DATABASE_URL="file:./prisma/prod.db"
-JWT_SECRET=$(openssl rand -base64 32)
-FRONTEND_URL=http://vm3937869.example.com
+NODE_ENV="production"
+PORT=3000
+FRONTEND_URL="http://your-domain.com"
+JWT_SECRET="$(openssl rand -base64 32)"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GOOGLE_CALLBACK_URL="http://your-domain.com/api/auth/google/callback"
+SMTP_HOST=""
+SMTP_PORT=""
+SMTP_USER=""
+SMTP_PASS=""
 EOF
 
-# Миграция базы данных
-npx prisma migrate deploy || npx prisma migrate dev --name init
-
-# Сборка TypeScript
-npm run build
-
-# Настройка фронтенда
-cd ../frontend
+# Установка зависимостей
 npm install
+
+# Генерация Prisma Client
+npx prisma generate
+
+# Миграция базы данных
+npx prisma migrate deploy
+
+# Сборка
+npm run build
+
+# Запуск через PM2
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+```
+
+#### 5.3. Настройка Frontend
+```bash
+cd /var/www/taxcalculator/tax-scan/frontend
+
+# Создаем .env
+echo 'VITE_API_URL=/api' > .env
+
+# Установка зависимостей
+npm install
+
+# Сборка
 npm run build
 ```
 
-## Шаг 5: Настройка PM2
-
+#### 5.4. Настройка Nginx
 ```bash
-# Переместите конфигурацию
-mv /var/www/taxcalculator/ecosystem.config.js /var/www/taxcalculator/backend/
+cat > /etc/nginx/sites-available/taxcalculator << 'EOF'
+server {
+    listen 80;
+    server_name your-domain.com;
 
-# Запуск приложения
-cd /var/www/taxcalculator/backend
-pm2 start ecosystem.config.js
+    location / {
+        root /var/www/taxcalculator/tax-scan/frontend/dist;
+        try_files $uri $uri/ /index.html;
+    }
 
-# Сохранение конфигурации PM2
-pm2 save
+    location /api {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+EOF
 
-# Настройка автозапуска
-pm2 startup
-# Выполните команду, которую выведет PM2
-```
+# Активация конфигурации
+ln -sf /etc/nginx/sites-available/taxcalculator /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
 
-## Шаг 6: Настройка Nginx
-
-```bash
-# Копирование конфигурации
-cp /tmp/nginx-taxcalculator.conf /etc/nginx/sites-available/taxcalculator
-
-# Создание симлинка
-ln -s /etc/nginx/sites-available/taxcalculator /etc/nginx/sites-enabled/
-
-# Удаление дефолтной конфигурации (опционально)
-rm /etc/nginx/sites-enabled/default
-
-# Проверка конфигурации
+# Проверка и перезапуск
 nginx -t
-
-# Перезапуск Nginx
 systemctl restart nginx
 systemctl enable nginx
 ```
 
-## Шаг 7: Настройка файрвола (если нужно)
-
-```bash
-# Разрешить HTTP и HTTPS
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw allow 22/tcp
-ufw enable
-```
-
-## Проверка работы
-
-1. **Проверка бэкенда:**
-   ```bash
-   curl http://localhost:3000/health
-   ```
-
-2. **Проверка PM2:**
-   ```bash
-   pm2 status
-   pm2 logs taxcalculator-backend
-   ```
-
-3. **Проверка Nginx:**
-   ```bash
-   systemctl status nginx
-   ```
-
-4. **Откройте в браузере:**
-   ```
-   http://vm3937869.example.com
-   ```
-
 ## Полезные команды
 
-### PM2
 ```bash
-pm2 status              # Статус приложений
-pm2 logs                # Логи
-pm2 restart all         # Перезапуск
-pm2 stop all            # Остановка
-pm2 delete all          # Удаление
+# Просмотр логов
+pm2 logs taxcalculator-backend
+
+# Перезапуск приложения
+pm2 restart taxcalculator-backend
+
+# Статус приложения
+pm2 status
+
+# Остановка приложения
+pm2 stop taxcalculator-backend
+
+# Удаление из PM2
+pm2 delete taxcalculator-backend
 ```
 
-### Nginx
+## Обновление проекта
+
 ```bash
-nginx -t                # Проверка конфигурации
-systemctl restart nginx # Перезапуск
-systemctl status nginx  # Статус
-tail -f /var/log/nginx/taxcalculator-error.log  # Логи ошибок
-```
+cd /var/www/taxcalculator/tax-scan
 
-### Обновление проекта
-```bash
-# На локальном компьютере
-./deploy.sh
+# Получить последние изменения
+git pull origin main
 
-# Или вручную:
-rsync -avz --exclude 'node_modules' ./backend/ root@94.131.110.30:/var/www/taxcalculator/backend/
-rsync -avz --exclude 'node_modules' ./frontend/ root@94.131.110.30:/var/www/taxcalculator/frontend/
-
-# На сервере
-cd /var/www/taxcalculator/backend
-npm install --production
+# Backend
+cd backend
+npm install
+npx prisma generate
+npx prisma migrate deploy
 npm run build
 pm2 restart taxcalculator-backend
 
+# Frontend
 cd ../frontend
 npm install
 npm run build
-```
-
-## Решение проблем
-
-### Проблема: Приложение не запускается
-```bash
-# Проверьте логи
-pm2 logs taxcalculator-backend --lines 50
-
-# Проверьте .env файл
-cat /var/www/taxcalculator/backend/.env
-
-# Проверьте порт
-netstat -tulpn | grep 3000
-```
-
-### Проблема: Nginx не работает
-```bash
-# Проверьте конфигурацию
-nginx -t
-
-# Проверьте логи
-tail -f /var/log/nginx/error.log
-```
-
-### Проблема: База данных
-```bash
-cd /var/www/taxcalculator/backend
-npx prisma migrate reset
-npx prisma migrate deploy
-```
-
-## Безопасность
-
-⚠️ **Важно:** После деплоя:
-1. Смените пароль root
-2. Настройте SSH ключи вместо пароля
-3. Настройте SSL сертификат (Let's Encrypt)
-4. Настройте регулярные бэкапы базы данных
-
-### Настройка SSL (Let's Encrypt)
-
-```bash
-apt-get install -y certbot python3-certbot-nginx
-certbot --nginx -d vm3937869.example.com
-```
-
-## Мониторинг
-
-```bash
-# Мониторинг ресурсов
-pm2 monit
-
-# Статистика
-pm2 list
+systemctl reload nginx
 ```

@@ -5,7 +5,7 @@
 
 set -e
 
-APP_DIR="/var/www/taxcalculator"
+APP_DIR="/var/www/taxcalculator/tax-scan"
 BACKEND_DIR="$APP_DIR/backend"
 FRONTEND_DIR="$APP_DIR/frontend"
 
@@ -31,6 +31,53 @@ if ! command -v nginx &> /dev/null; then
     apt-get install -y nginx
 fi
 
+# Установка системных зависимостей для Puppeteer
+echo "📦 Установка зависимостей для Puppeteer/Chromium..."
+apt-get update
+
+# Критически важные пакеты
+apt-get install -y \
+  ca-certificates \
+  fonts-liberation \
+  libatk-bridge2.0-0 \
+  libatk1.0-0 \
+  libc6 \
+  libcairo2 \
+  libcups2 \
+  libdbus-1-3 \
+  libexpat1 \
+  libfontconfig1 \
+  libgbm1 \
+  libgcc1 \
+  libglib2.0-0 \
+  libgtk-3-0 \
+  libnspr4 \
+  libnss3 \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libstdc++6 \
+  libx11-6 \
+  libx11-xcb1 \
+  libxcb1 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxext6 \
+  libxfixes3 \
+  libxi6 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+  wget \
+  xdg-utils || true
+
+# Опциональные пакеты (не критичны)
+apt-get install -y libappindicator3-1 lsb-release 2>/dev/null || echo "⚠️  Некоторые опциональные пакеты не установлены (не критично)"
+
+# Установка libasound2 (разные версии для разных Ubuntu)
+apt-get install -y libasound2t64 2>/dev/null || apt-get install -y libasound2 2>/dev/null || echo "⚠️  libasound2 не установлен (не критично для headless Chrome)"
+
 # Создание директорий
 mkdir -p $APP_DIR
 mkdir -p /var/log/pm2
@@ -53,7 +100,7 @@ NODE_ENV=production
 PORT=3000
 DATABASE_URL="file:./prisma/prod.db"
 JWT_SECRET=$(openssl rand -base64 32)
-FRONTEND_URL=http://vm3937869.example.com
+FRONTEND_URL=http://your-domain.com
 EOF
 fi
 
@@ -82,7 +129,7 @@ module.exports = {
   apps: [{
     name: 'taxcalculator-backend',
     script: './dist/app.js',
-    cwd: '/var/www/taxcalculator/backend',
+    cwd: '/var/www/taxcalculator/tax-scan/backend',
     instances: 1,
     exec_mode: 'fork',
     env: {
@@ -133,7 +180,7 @@ echo ""
 echo "📊 Статус приложения:"
 pm2 status
 echo ""
-echo "🌐 Откройте: http://vm3937869.example.com"
+echo "🌐 Откройте: http://your-domain.com"
 echo ""
 echo "📝 Полезные команды:"
 echo "   pm2 logs taxcalculator-backend    # Логи приложения"

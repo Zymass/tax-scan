@@ -109,6 +109,14 @@ class ApiClient {
   deleteCalculation(id: string) {
     return this.client.delete(`/calculations/${id}`);
   }
+
+  // Analytics endpoints
+  getAnalytics(startDate?: string, endDate?: string) {
+    const params: any = {};
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    return this.client.get('/analytics/stats', { params });
+  }
 }
 
 export const apiClient = new ApiClient();

@@ -2,45 +2,9 @@
 
 Веб-приложение для расчета налоговой нагрузки для российских малого и среднего бизнеса с учетом изменений в налоговом законодательстве 2026 года.
 
-## Архитектура
+## Запуск на удаленном сервере
 
-Проект состоит из двух частей:
-- **Backend**: Express + TypeScript + Prisma + PostgreSQL
-- **Frontend**: React + TypeScript + Vite
-
-## Быстрый старт
-
-### Требования
-
-- Node.js 18+
-- PostgreSQL 15+
-- npm или yarn
-
-### Backend Setup
-
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Настройте DATABASE_URL в .env
-npx prisma generate
-npx prisma migrate dev
-npm run dev
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Docker Setup
-
-```bash
-docker-compose up
-```
+См. [DEPLOY.md](./DEPLOY.md) для подробных инструкций по деплою на сервер.
 
 ## Структура проекта
 

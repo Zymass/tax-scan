@@ -5,6 +5,7 @@ import CalculatorPage from './pages/CalculatorPage';
 import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import Footer from './components/Common/Footer';
 import './styles/globals.css';
@@ -46,6 +47,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <AnalyticsPage />
               </ProtectedRoute>
             }
           />

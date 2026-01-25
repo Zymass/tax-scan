@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth';
+import { useAuth } from '../hooks/useAuth';
 import { User } from '../types';
 import Header from '../components/Common/Header';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
@@ -11,6 +12,12 @@ const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     loadProfile();
@@ -130,6 +137,19 @@ const ProfilePage: React.FC = () => {
                   className="btn-secondary"
                 >
                   История расчетов
+                </button>
+                <button 
+                  onClick={() => navigate('/analytics')} 
+                  className="btn-secondary"
+                >
+                  Аналитика
+                </button>
+                <button 
+                  onClick={handleLogout} 
+                  className="btn-secondary"
+                  style={{ marginTop: '10px', backgroundColor: '#ef4444', color: 'white' }}
+                >
+                  Выйти из аккаунта
                 </button>
               </div>
             </div>

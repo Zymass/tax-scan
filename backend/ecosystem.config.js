@@ -8,6 +8,8 @@ module.exports = {
     env: {
       NODE_ENV: 'production',
       PORT: 3000
+      // Uncomment and set path if you want to use system Chromium instead of Puppeteer's bundled one
+      // PUPPETEER_EXECUTABLE_PATH: '/usr/bin/chromium' // or '/usr/bin/chromium-browser'
     },
     error_file: '/var/log/pm2/taxcalculator-backend-error.log',
     out_file: '/var/log/pm2/taxcalculator-backend-out.log',

@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import * as fs from 'fs';
 
 export async function generatePdf(htmlContent: string): Promise<Buffer> {
   let browser;
@@ -6,9 +7,24 @@ export async function generatePdf(htmlContent: string): Promise<Buffer> {
   try {
     console.log('[PDF Generator] Launching Puppeteer...');
     
+    // Get executable path for debugging
+    const executablePath = puppeteer.executablePath();
+    console.log('[PDF Generator] Chromium path:', executablePath);
+    
+    // Check if executable exists and is accessible
+    try {
+      fs.accessSync(executablePath, fs.constants.F_OK | fs.constants.X_OK);
+      console.log('[PDF Generator] Chromium executable is accessible');
+    } catch (accessError: any) {
+      console.error('[PDF Generator] Chromium executable access error:', accessError.message);
+      throw new Error(`Chromium executable not accessible at ${executablePath}. Check permissions and dependencies.`);
+    }
+    
     // Launch options - using new headless mode and avoiding problematic flags
     const launchOptions: any = {
       headless: 'new', // Use new headless mode to avoid deprecation warning
+      // Allow using system Chromium if PUPPETEER_EXECUTABLE_PATH is set
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -28,6 +44,8 @@ export async function generatePdf(htmlContent: string): Promise<Buffer> {
         '--disable-sync',
         '--metrics-recording-only',
         '--mute-audio',
+        '--disable-audio', // Additional flag to disable audio completely
+        '--disable-audio-output', // Disable audio output
         '--no-first-run',
         '--safebrowsing-disable-auto-update',
         '--enable-automation',
@@ -38,7 +56,7 @@ export async function generatePdf(htmlContent: string): Promise<Buffer> {
       timeout: 60000,
       protocolTimeout: 60000,
       ignoreHTTPSErrors: true,
-      dumpio: false
+      dumpio: process.env.NODE_ENV === 'development' // Enable in dev for debugging
     };
 
     browser = await puppeteer.launch(launchOptions);
@@ -97,8 +115,11 @@ export async function generatePdf(htmlContent: string): Promise<Buffer> {
     // Check for common error patterns and provide helpful messages
     if (error.message?.includes('Could not find Chrome') || 
         error.message?.includes('No usable sandbox') ||
-        error.code === 'ECONNREFUSED') {
-      throw new Error('Chrome/Chromium не найден или не может быть запущен. Попробуйте: npm install puppeteer --force');
+        error.code === 'ECONNREFUSED' ||
+        error.code === 127 ||
+        error.message?.includes('Code: 127') ||
+        error.message?.includes('Failed to launch the browser process')) {
+      throw new Error('Chrome/Chromium не найден или не может быть запущен. Установите системные зависимости: apt install -y ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils && npm install puppeteer --force');
     }
     
     if (error.message?.includes('socket hang up') || 
