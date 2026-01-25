@@ -17,7 +17,6 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'comparison' | 'scenarios' | 'actions'>('overview');
   const [actionPlans, setActionPlans] = useState<ActionPlan[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
-  const [loadingEmail, setLoadingEmail] = useState(false);
 
   React.useEffect(() => {
     loadActionPlans();
@@ -54,32 +53,6 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
     }
   };
 
-  const handleSendEmail = async () => {
-    const email = prompt('Введите email:');
-    if (!email) {
-      return;
-    }
-
-    // Простая валидация email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      alert('Пожалуйста, введите корректный email адрес');
-      return;
-    }
-
-    setLoadingEmail(true);
-    try {
-      await apiClient.sendEmail(calculationId, email);
-      alert('Email успешно отправлен!');
-    } catch (error: any) {
-      console.error('Error sending email:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Неизвестная ошибка';
-      alert(`Ошибка при отправке email: ${errorMessage}`);
-    } finally {
-      setLoadingEmail(false);
-    }
-  };
-
   return (
     <div className="step5-results">
       <div className="results-header">
@@ -87,9 +60,6 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
         <div className="action-buttons">
           <button onClick={handleExportPdf} disabled={loadingPdf} className="btn-secondary">
             {loadingPdf ? '⏳ Генерация...' : '📥 Скачать PDF'}
-          </button>
-          <button onClick={handleSendEmail} disabled={loadingEmail} className="btn-secondary">
-            {loadingEmail ? '⏳ Отправка...' : '📧 Отправить на email'}
           </button>
           <button className="btn-secondary">🗓️ Добавить в календарь</button>
         </div>
