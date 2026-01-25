@@ -9,9 +9,13 @@
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 40px;
   margin-bottom: 30px;
+}
+
+.footer-section {
+  min-width: 0; /* Позволяет секциям правильно сжиматься в grid */
 }
 
 .footer-section h4 {
@@ -67,6 +71,42 @@
   font-size: 11px !important;
   color: #6b7280 !important;
   font-style: italic;
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-contact p {
+  margin: 0;
+  color: #d1d5db;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.footer-contact p strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.footer-contact a {
+  color: #0284C7;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-contact a:hover {
+  color: #0ea5e9;
+  text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
 }
 
 @media (max-width: 768px) {

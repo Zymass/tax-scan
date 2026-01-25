@@ -6,6 +6,7 @@ import ResultsPage from './pages/ResultsPage';
 import HistoryPage from './pages/HistoryPage';
 import ProfilePage from './pages/ProfilePage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import UserAgreementPage from './pages/UserAgreementPage';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import Footer from './components/Common/Footer';
 import './styles/globals.css';
@@ -58,6 +59,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/user-agreement" element={<UserAgreementPage />} />
         </Routes>
         <Footer />
       </div>

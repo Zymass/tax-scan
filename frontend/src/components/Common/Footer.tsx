@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Footer.css';
 
 const Footer: React.FC = () => {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -24,10 +26,20 @@ const Footer: React.FC = () => {
         <div className="footer-section">
           <h4>Правовая информация</h4>
           <ul>
+            <li><a href="#" onClick={(e) => { e.preventDefault(); navigate('/user-agreement'); }}>Пользовательское соглашение</a></li>
             <li><a href="#privacy">Политика конфиденциальности</a></li>
-            <li><a href="#terms">Условия использования</a></li>
             <li><a href="#disclaimer">Отказ от ответственности</a></li>
           </ul>
+        </div>
+        
+        <div className="footer-section">
+          <h4>Контактная информация</h4>
+          <div className="footer-contact">
+            <p><strong>ИП Филяев</strong></p>
+            <p>Телефон: <a href="tel:+79819824031">+7 (981) 982-40-31</a></p>
+            <p>Адрес: г. Липецк, ул. Циолковского, д. 6</p>
+            <p>ИНН: 482619918391</p>
+          </div>
         </div>
       </div>
       
