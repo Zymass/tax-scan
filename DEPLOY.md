@@ -17,12 +17,20 @@ npm install -g pm2
 
 ### 3. Загрузка проекта
 
-**Вариант A: Через Git**
+**Вариант A: Через Git (рекомендуется)**
+
+**Первая установка:**
 ```bash
 mkdir -p /var/www/taxcalculator
 cd /var/www/taxcalculator
 git clone https://github.com/Zymass/tax-scan.git
 cd tax-scan
+```
+
+**Если проект уже установлен, обновите через git pull:**
+```bash
+cd /var/www/taxcalculator/tax-scan
+git pull origin main
 ```
 
 **Вариант B: Через SCP (с локального компьютера)**
@@ -205,10 +213,12 @@ pm2 delete taxcalculator-backend
 
 ## Обновление проекта
 
+### Быстрое обновление через git pull
+
 ```bash
 cd /var/www/taxcalculator/tax-scan
 
-# Получить последние изменения
+# Получить последние изменения из репозитория
 git pull origin main
 
 # Backend
@@ -224,4 +234,33 @@ cd ../frontend
 npm install
 npm run build
 systemctl reload nginx
+```
+
+### Если git pull требует аутентификации
+
+**Настройка через Personal Access Token:**
+```bash
+# На сервере
+cd /var/www/taxcalculator/tax-scan
+
+# Установите токен в URL (замените YOUR_TOKEN на ваш токен)
+git remote set-url origin https://Zymass:YOUR_TOKEN@github.com/Zymass/tax-scan.git
+
+# Теперь можно делать pull без ввода пароля
+git pull origin main
+```
+
+**Или используйте SSH (рекомендуется):**
+```bash
+# На сервере
+cd /var/www/taxcalculator/tax-scan
+
+# Измените remote на SSH
+git remote set-url origin git@github.com:Zymass/tax-scan.git
+
+# Проверьте подключение
+ssh -T git@github.com
+
+# Теперь можно делать pull
+git pull origin main
 ```
