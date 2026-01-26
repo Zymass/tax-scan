@@ -17,6 +17,12 @@ export const useCalculation = () => {
       setError(null);
       return response.data;
     } catch (err: any) {
+      // Не показываем ошибку авторизации для неавторизованных пользователей
+      // (они могут просматривать расчеты, созданные через demo user)
+      if (err.response?.status === 401 && !localStorage.getItem('token')) {
+        setError(null);
+        return null;
+      }
       setError(err.response?.data?.error || 'Error loading calculation');
       return null;
     } finally {

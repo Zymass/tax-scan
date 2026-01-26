@@ -176,7 +176,7 @@ const FormWizard: React.FC = () => {
         <button onClick={handleInit} disabled={loading} className="btn-primary">
           {loading ? 'Загрузка...' : 'Начать расчет'}
         </button>
-        {error && <p className="error">{error}</p>}
+        {error && !error.includes('No token') && <p className="error">{error}</p>}
       </div>
     );
   }
@@ -235,7 +235,7 @@ const FormWizard: React.FC = () => {
         )}
       </div>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && !error.includes('No token') && <div className="error-message">{error}</div>}
     </div>
   );
 };
