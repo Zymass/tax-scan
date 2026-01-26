@@ -42,12 +42,6 @@ const Header: React.FC = () => {
               >
                 Личный кабинет
               </button>
-              <button
-                onClick={() => navigate('/analytics')}
-                className="btn-link"
-              >
-                Аналитика
-              </button>
               <span>{user.name}</span>
               <button onClick={handleLogout} className="btn-secondary btn-small">
                 Выйти

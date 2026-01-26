@@ -139,12 +139,6 @@ const ProfilePage: React.FC = () => {
                   История расчетов
                 </button>
                 <button 
-                  onClick={() => navigate('/analytics')} 
-                  className="btn-secondary"
-                >
-                  Аналитика
-                </button>
-                <button 
                   onClick={handleLogout} 
                   className="btn-secondary"
                   style={{ marginTop: '10px', backgroundColor: '#ef4444', color: 'white' }}
