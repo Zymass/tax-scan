@@ -86,7 +86,7 @@ tail -f /var/log/pm2/taxcalculator-backend-error.log
 tail -n 100 /var/log/pm2/taxcalculator-backend-out.log
 ```
 
-## 4. Nginx логи доступа
+## 4. Nginx логи доступа (для подсчета всех посетителей)
 
 ### Логи доступа
 ```bash
@@ -101,6 +101,45 @@ grep "IP_ADDRESS" /var/log/nginx/access.log
 
 # Подсчет запросов
 grep "GET /api" /var/log/nginx/access.log | wc -l
+```
+
+### Подсчет уникальных посетителей
+
+```bash
+# Уникальные IP адреса за все время
+awk '{print $1}' /var/log/nginx/access.log | sort -u | wc -l
+
+# Уникальные посетители за сегодня
+grep "$(date +%d/%b/%Y)" /var/log/nginx/access.log | awk '{print $1}' | sort -u | wc -l
+
+# Уникальные посетители за конкретную дату (например, 26/Jan/2026)
+grep "26/Jan/2026" /var/log/nginx/access.log | awk '{print $1}' | sort -u | wc -l
+
+# Уникальные посетители за последние 7 дней
+for i in {0..6}; do
+  date=$(date -d "$i days ago" +%d/%b/%Y)
+  count=$(grep "$date" /var/log/nginx/access.log 2>/dev/null | awk '{print $1}' | sort -u | wc -l)
+  echo "$date: $count уникальных посетителей"
+done
+
+# Уникальные посетители за последние 30 дней
+for i in {0..29}; do
+  date=$(date -d "$i days ago" +%d/%b/%Y)
+  count=$(grep "$date" /var/log/nginx/access.log 2>/dev/null | awk '{print $1}' | sort -u | wc -l)
+  echo "$date: $count уникальных посетителей"
+done
+
+# Топ 10 самых активных IP адресов
+awk '{print $1}' /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -10
+
+# Количество посещений главной страницы (не API)
+grep "GET / " /var/log/nginx/access.log | wc -l
+
+# Количество посещений калькулятора
+grep "GET /calculator" /var/log/nginx/access.log | wc -l
+
+# Уникальные посетители калькулятора за сегодня
+grep "$(date +%d/%b/%Y)" /var/log/nginx/access.log | grep "GET /calculator" | awk '{print $1}' | sort -u | wc -l
 ```
 
 ### Логи ошибок Nginx
@@ -167,6 +206,13 @@ grep "$(date +%d/%b/%Y)" /var/log/nginx/access.log | grep "/api" | wc -l
 
 # Статистика по методам HTTP
 awk '{print $6}' /var/log/nginx/access.log | sort | uniq -c | sort -rn
+
+# Общая статистика посещений
+echo "=== Статистика посещений ==="
+echo "Всего уникальных посетителей: $(awk '{print $1}' /var/log/nginx/access.log | sort -u | wc -l)"
+echo "Посетителей за сегодня: $(grep "$(date +%d/%b/%Y)" /var/log/nginx/access.log | awk '{print $1}' | sort -u | wc -l)"
+echo "Всего запросов: $(wc -l < /var/log/nginx/access.log)"
+echo "Запросов за сегодня: $(grep "$(date +%d/%b/%Y)" /var/log/nginx/access.log | wc -l)"
 ```
 
 ## 8. Экспорт логов
