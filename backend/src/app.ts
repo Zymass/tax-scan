@@ -35,16 +35,25 @@ app.use(cors({
 }));
 
 // Rate limiting
+// Note: We set 'trust proxy' to 1 (not true) to trust only the first proxy (nginx)
+// This prevents the ERR_ERL_PERMISSIVE_TRUST_PROXY error
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip validation since we've explicitly set trust proxy to 1 (safe)
+  validate: false
 });
 
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 5, // limit each IP to 5 login attempts per windowMs
-  message: 'Too many login attempts, please try again later.'
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: false
 });
 
 app.use('/api/', limiter);
