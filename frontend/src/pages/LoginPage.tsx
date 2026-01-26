@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import LoginForm from '../components/Auth/LoginForm';
 import RegisterForm from '../components/Auth/RegisterForm';
 import Header from '../components/Common/Header';
@@ -7,13 +7,15 @@ import Header from '../components/Common/Header';
 const LoginPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirect = searchParams.get('redirect') || '/calculator';
 
   const handleLoginSuccess = () => {
-    navigate('/calculator');
+    navigate(redirect);
   };
 
   const handleRegisterSuccess = () => {
-    navigate('/calculator');
+    navigate(redirect);
   };
 
   return (

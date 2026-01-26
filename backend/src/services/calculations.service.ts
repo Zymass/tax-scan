@@ -41,13 +41,19 @@ export class CalculationsService {
     });
   }
 
-  async getCalculation(id: string, userId: string) {
+  async getCalculation(id: string, userId?: string) {
     const calculation = await prisma.calculation.findUnique({
       where: { id },
       include: { steps: true, actions: true }
     });
 
-    if (!calculation || calculation.user_id !== userId) {
+    if (!calculation) {
+      throw new Error('Calculation not found');
+    }
+
+    // Если userId не указан (неавторизованный), разрешаем доступ
+    // Если userId указан, проверяем что расчет принадлежит пользователю
+    if (userId && calculation.user_id !== userId) {
       throw new Error('Calculation not found');
     }
 

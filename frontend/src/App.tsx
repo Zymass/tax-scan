@@ -8,6 +8,7 @@ import ProfilePage from './pages/ProfilePage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import UserAgreementPage from './pages/UserAgreementPage';
 import ProtectedRoute from './components/Common/ProtectedRoute';
+import OptionalProtectedRoute from './components/Common/OptionalProtectedRoute';
 import Footer from './components/Common/Footer';
 import './styles/globals.css';
 
@@ -22,17 +23,17 @@ function App() {
           <Route
             path="/calculator"
             element={
-              <ProtectedRoute>
+              <OptionalProtectedRoute showWarning={false}>
                 <CalculatorPage />
-              </ProtectedRoute>
+              </OptionalProtectedRoute>
             }
           />
           <Route
             path="/results/:id"
             element={
-              <ProtectedRoute>
+              <OptionalProtectedRoute showWarning={false}>
                 <ResultsPage />
-              </ProtectedRoute>
+              </OptionalProtectedRoute>
             }
           />
           <Route

@@ -4,7 +4,6 @@ import { apiClient } from '../services/api';
 import { CalculationData } from '../types';
 import Step5Results from '../components/Results/Step5Results';
 import Header from '../components/Common/Header';
-import ProtectedRoute from '../components/Common/ProtectedRoute';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
 
 const ResultsPage: React.FC = () => {
@@ -37,44 +36,38 @@ const ResultsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <div className="page-container">
-          <Header />
-          <div className="page-content">
-            <LoadingSpinner />
-          </div>
+      <div className="page-container">
+        <Header />
+        <div className="page-content">
+          <LoadingSpinner />
         </div>
-      </ProtectedRoute>
+      </div>
     );
   }
 
   if (error || !results || !id) {
     return (
-      <ProtectedRoute>
-        <div className="page-container">
-          <Header />
-          <div className="page-content">
-            <div className="error-message">
-              {error || 'Результаты не найдены'}
-            </div>
-            <button onClick={() => navigate('/calculator')} className="btn-primary">
-              Вернуться к калькулятору
-            </button>
+      <div className="page-container">
+        <Header />
+        <div className="page-content">
+          <div className="error-message">
+            {error || 'Результаты не найдены'}
           </div>
+          <button onClick={() => navigate('/calculator')} className="btn-primary">
+            Вернуться к калькулятору
+          </button>
         </div>
-      </ProtectedRoute>
+      </div>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="page-container">
-        <Header />
-        <div className="page-content">
-          <Step5Results data={results} calculationId={id} />
-        </div>
+    <div className="page-container">
+      <Header />
+      <div className="page-content">
+        <Step5Results data={results} calculationId={id} />
       </div>
-    </ProtectedRoute>
+    </div>
   );
 };
 

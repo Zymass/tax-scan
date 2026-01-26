@@ -7,13 +7,22 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Проверяем токен при загрузке
+  // Проверяем токен при загрузке и получаем информацию о пользователе
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Можно попробовать получить информацию о пользователе
-      // Пока просто проверяем наличие токена
-    }
+    const loadUser = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await apiClient.getMe();
+          setUser(response.data);
+        } catch (error) {
+          // Токен невалидный, очищаем
+          localStorage.removeItem('token');
+          setUser(null);
+        }
+      }
+    };
+    loadUser();
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

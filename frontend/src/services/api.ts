@@ -26,9 +26,16 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => response,
       async (error) => {
+        // Не перенаправляем на логин для неавторизованных запросов к calculations
+        // (они могут работать без авторизации)
         if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
+          const url = error.config?.url || '';
+          // Если это не запрос к calculations, перенаправляем на логин
+          if (!url.includes('/calculations') && !url.includes('/auth')) {
+            localStorage.removeItem('token');
+            // Не перенаправляем автоматически, чтобы неавторизованные пользователи могли использовать калькулятор
+            // window.location.href = '/login';
+          }
         }
         return Promise.reject(error);
       }

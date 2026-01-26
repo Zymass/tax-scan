@@ -211,6 +211,15 @@ pm2 stop taxcalculator-backend
 pm2 delete taxcalculator-backend
 ```
 
+## Просмотр логов использования
+
+Подробные инструкции по просмотру логов и аналитики см. в [VIEW_LOGS.md](./VIEW_LOGS.md)
+
+**Быстрый доступ:**
+- **Веб-аналитика:** `http://your-domain.com/analytics`
+- **PM2 логи:** `pm2 logs taxcalculator-backend`
+- **Nginx логи:** `tail -f /var/log/nginx/access.log`
+
 ## Обновление проекта
 
 ### Быстрое обновление через git pull

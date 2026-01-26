@@ -51,7 +51,7 @@ export class CalculationsController {
 
   async getOne(req: Request, res: Response) {
     try {
-      const userId = req.userId || await this.getOrCreateDemoUser();
+      const userId = req.userId; // Может быть undefined для неавторизованных
       const { id } = req.params;
       const calculation = await this.calculationsService.getCalculation(id, userId);
       res.json(calculation);
@@ -148,7 +148,12 @@ export class CalculationsController {
 
   async getPdf(req: Request, res: Response) {
     try {
-      const userId = req.userId || await this.getOrCreateDemoUser();
+      // PDF доступен только для авторизованных пользователей
+      if (!req.userId) {
+        return res.status(401).json({ error: 'Авторизация требуется для экспорта PDF' });
+      }
+      
+      const userId = req.userId;
       const { id } = req.params;
       
       console.log(`[PDF] Starting PDF generation for calculation ${id}`);
@@ -222,7 +227,12 @@ export class CalculationsController {
 
   async sendEmail(req: Request, res: Response) {
     try {
-      const userId = req.userId || await this.getOrCreateDemoUser();
+      // Email доступен только для авторизованных пользователей
+      if (!req.userId) {
+        return res.status(401).json({ error: 'Авторизация требуется для отправки email' });
+      }
+      
+      const userId = req.userId;
       const { id } = req.params;
       const { email } = req.body;
       

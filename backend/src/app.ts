@@ -14,7 +14,7 @@ import analyticsRoutes from './api/analytics.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error.middleware';
-import { authMiddleware } from './middleware/auth.middleware';
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth.middleware';
 
 // Passport config (initializes Google OAuth strategy) - imported AFTER dotenv.config()
 import './config/passport.config';
@@ -56,7 +56,8 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/calculations', authMiddleware, calculationsRoutes);
+// Calculations доступны без авторизации (используется optionalAuthMiddleware внутри)
+app.use('/api/calculations', optionalAuthMiddleware, calculationsRoutes);
 app.use('/api', authMiddleware, actionsRoutes);
 app.use('/api/analytics', authMiddleware, analyticsRoutes);
 

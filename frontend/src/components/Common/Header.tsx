@@ -21,38 +21,47 @@ const Header: React.FC = () => {
         >
           Налоговый калькулятор 2026
         </h1>
-        {user && (
-          <div className="header-user">
+        <div className="header-user">
+          <button
+            onClick={() => navigate('/calculator')}
+            className="btn-link"
+          >
+            Калькулятор
+          </button>
+          {user ? (
+            <>
+              <button
+                onClick={() => navigate('/history')}
+                className="btn-link"
+              >
+                История
+              </button>
+              <button
+                onClick={() => navigate('/profile')}
+                className="btn-link"
+              >
+                Личный кабинет
+              </button>
+              <button
+                onClick={() => navigate('/analytics')}
+                className="btn-link"
+              >
+                Аналитика
+              </button>
+              <span>{user.name}</span>
+              <button onClick={handleLogout} className="btn-secondary btn-small">
+                Выйти
+              </button>
+            </>
+          ) : (
             <button
-              onClick={() => navigate('/calculator')}
-              className="btn-link"
+              onClick={() => navigate('/login')}
+              className="btn-primary btn-small"
             >
-              Калькулятор
+              Войти
             </button>
-            <button
-              onClick={() => navigate('/history')}
-              className="btn-link"
-            >
-              История
-            </button>
-            <button
-              onClick={() => navigate('/profile')}
-              className="btn-link"
-            >
-              Личный кабинет
-            </button>
-            <button
-              onClick={() => navigate('/analytics')}
-              className="btn-link"
-            >
-              Аналитика
-            </button>
-            <span>{user.name}</span>
-            <button onClick={handleLogout} className="btn-secondary btn-small">
-              Выйти
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </header>
   );
