@@ -140,7 +140,6 @@ const Step5Results: React.FC<Step5Props> = ({ data, calculationId }) => {
             <button onClick={handleExportPdf} disabled={loadingPdf} className="btn-secondary">
               {loadingPdf ? '⏳ Генерация...' : '📥 Скачать PDF'}
             </button>
-            <button className="btn-secondary">🗓️ Добавить в календарь</button>
           </div>
         )}
       </div>
