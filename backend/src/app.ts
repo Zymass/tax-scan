@@ -23,7 +23,8 @@ const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
 // Trust proxy (needed when behind nginx reverse proxy)
-app.set('trust proxy', true);
+// Set to 1 to trust the first proxy (nginx) for rate limiting security
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
